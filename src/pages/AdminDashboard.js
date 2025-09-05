@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState({});
   const [orders, setOrders] = useState([]);
@@ -137,29 +139,31 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    window.location.href = '/';
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 0' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ color: '#333' }}>🏪 Admin Dashboard</h1>
+          <h1 style={{ color: '#333' }}>Admin Dashboard</h1>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button 
-              onClick={() => window.location.href = '/admin/theme'}
+              onClick={() => navigate('/admin/theme')}
               className="btn btn-secondary"
             >
-              🎨 Theme Control
+              Theme Control
             </button>
             <button 
-              onClick={() => window.location.href = '/admin/product/new'}
+              onClick={() => navigate('/admin/product/new')}
               className="btn btn-primary"
             >
-              ➕ Add Product
+              Add Product
             </button>
             <button 
-              onClick={() => {
-                localStorage.removeItem('adminToken');
-                window.location.href = '/';
-              }}
+              onClick={handleLogout}
               className="btn btn-outline"
             >
               Logout
@@ -187,8 +191,8 @@ const AdminDashboard = () => {
               className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-secondary'}`}
               style={{ borderRadius: '8px 8px 0 0', textTransform: 'capitalize' }}
             >
-              {tab === 'dashboard' ? '📊 Dashboard' : 
-               tab === 'orders' ? '📦 Orders' : '🛍️ Products'}
+              {tab === 'dashboard' ? 'Dashboard' : 
+               tab === 'orders' ? 'Orders' : 'Products'}
             </button>
           ))}
         </div>
@@ -224,7 +228,7 @@ const AdminDashboard = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                   {/* Recent Orders */}
                   <div className="profile-section">
-                    <h3>📦 Recent Orders</h3>
+                    <h3>Recent Orders</h3>
                     {stats.recentOrders && stats.recentOrders.length > 0 ? (
                       stats.recentOrders.map(order => (
                         <div key={order._id} style={{ 
@@ -261,7 +265,7 @@ const AdminDashboard = () => {
 
                   {/* Top Products */}
                   <div className="profile-section">
-                    <h3>🏆 Top Products</h3>
+                    <h3>Top Products</h3>
                     {stats.topProducts && stats.topProducts.length > 0 ? (
                       stats.topProducts.map((product, index) => (
                         <div key={product._id} style={{ 
@@ -297,7 +301,7 @@ const AdminDashboard = () => {
             {/* Orders Tab */}
             {activeTab === 'orders' && (
               <div className="profile-section">
-                <h3>📦 All Orders ({orders.length})</h3>
+                <h3>All Orders ({orders.length})</h3>
                 {orders.length > 0 ? (
                   orders.map(order => (
                     <div key={order._id} style={{
@@ -351,7 +355,7 @@ const AdminDashboard = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2rem' }}>
                         {/* Customer Info */}
                         <div>
-                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>👤 Customer</h5>
+                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>Customer</h5>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}><strong>Name:</strong> {order.user ? order.user.name : 'N/A'}</p>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}><strong>Email:</strong> {order.user ? order.user.email : 'N/A'}</p>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}><strong>Phone:</strong> {order.user ? order.user.phone : 'N/A'}</p>
@@ -359,7 +363,7 @@ const AdminDashboard = () => {
 
                         {/* Shipping Address */}
                         <div>
-                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>📍 Shipping</h5>
+                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>Shipping</h5>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>{order.shippingAddress.name}</p>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>{order.shippingAddress.address}</p>
                           <p style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>Wilaya: {order.shippingAddress.city}</p>
@@ -368,7 +372,7 @@ const AdminDashboard = () => {
 
                         {/* Order Items */}
                         <div>
-                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>🛒 Items</h5>
+                          <h5 style={{ marginBottom: '0.5rem', color: '#333' }}>Items</h5>
                           {order.orderItems.map((item, index) => (
                             <p key={index} style={{ margin: '0.25rem 0', fontSize: '0.9rem' }}>
                               {item.name} (x{item.quantity}) - ${(item.price * item.quantity).toFixed(2)}
@@ -394,7 +398,7 @@ const AdminDashboard = () => {
               <div>
                 {/* Add/Edit Product Form */}
                 <div className="profile-section" style={{ marginBottom: '2rem' }}>
-                  <h3>{editingProduct ? '✏️ Edit Product' : '➕ Add New Product'}</h3>
+                  <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
                   <form onSubmit={handleProductSubmit}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                       <div className="form-group">
@@ -543,7 +547,7 @@ const AdminDashboard = () => {
 
                 {/* Products List */}
                 <div className="profile-section">
-                  <h3>🛍️ All Products ({products.length})</h3>
+                  <h3>All Products ({products.length})</h3>
                   {products.length > 0 ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
                       {products.map(product => (
@@ -583,7 +587,7 @@ const AdminDashboard = () => {
                             </div>
                             <div style={{ fontSize: '0.8rem', color: '#666' }}>
                               Category: {product.category}
-                              {product.featured && <span style={{ color: '#ffc107', marginLeft: '0.5rem' }}>⭐ Featured</span>}
+                              {product.featured && <span style={{ color: '#ffc107', marginLeft: '0.5rem' }}>Featured</span>}
                             </div>
                             {product.sizes && product.sizes.length > 0 && (
                               <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
@@ -598,11 +602,11 @@ const AdminDashboard = () => {
                           </div>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button 
-                              onClick={() => window.location.href = `/admin/product/edit/${product._id}`}
+                              onClick={() => navigate(`/admin/product/edit/${product._id}`)}
                               className="btn btn-secondary"
                               style={{ flex: 1, padding: '0.5rem', fontSize: '0.9rem' }}
                             >
-                              ✏️ Edit
+                              Edit
                             </button>
                             <button 
                               onClick={() => handleDeleteProduct(product._id)}
@@ -616,7 +620,7 @@ const AdminDashboard = () => {
                                 border: 'none'
                               }}
                             >
-                              🗑️ Delete
+                              Delete
                             </button>
                           </div>
                         </div>
