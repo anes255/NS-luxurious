@@ -645,9 +645,6 @@ body {
     font-size: 1.4rem; /* Smaller logo on mobile */
   }
   
-  /* Hide admin link on very small screens */
-  .nav-links li:nth-last-child(2) {
-    display: none;
   }
 }
 
@@ -688,6 +685,7 @@ body {
   }
 }
 }
+
 
 
 
