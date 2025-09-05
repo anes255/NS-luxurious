@@ -24,6 +24,8 @@ const ProductEditor = () => {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const categories = [
     'Luxury Bags',
@@ -71,6 +73,90 @@ const ProductEditor = () => {
       console.error('Error loading product:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMainImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image file must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    setError('');
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await axios.post('/upload/product-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'email': 'nessbusiness66@gmail.com',
+          'password': 'lavieestbelle070478'
+        }
+      });
+
+      setProductForm({ ...productForm, image: response.data.imageUrl });
+      setImagePreview(response.data.imageUrl);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleMultipleImagesUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    // Validate files
+    for (let file of files) {
+      if (!file.type.startsWith('image/')) {
+        setError('All files must be images');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Each image file must be less than 5MB');
+        return;
+      }
+    }
+
+    setUploadingImages(true);
+    setError('');
+
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+
+    try {
+      const response = await axios.post('/upload/product-images', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'email': 'nessbusiness66@gmail.com',
+          'password': 'lavieestbelle070478'
+        }
+      });
+
+      // Add new image URLs to existing ones
+      const currentImages = productForm.images ? productForm.images.split(',').map(img => img.trim()).filter(img => img) : [];
+      const newImages = [...currentImages, ...response.data.imageUrls];
+      setProductForm({ ...productForm, images: newImages.join(', ') });
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to upload images');
+    } finally {
+      setUploadingImages(false);
     }
   };
 
@@ -153,18 +239,24 @@ const ProductEditor = () => {
     navigate('/admin/dashboard');
   };
 
+  const removeImageFromList = (indexToRemove) => {
+    const currentImages = productForm.images.split(',').map(img => img.trim()).filter(img => img);
+    const updatedImages = currentImages.filter((_, index) => index !== indexToRemove);
+    setProductForm({ ...productForm, images: updatedImages.join(', ') });
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 0' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h1 style={{ color: '#333' }}>
-            {isEditing ? '✏️ Edit Product' : '➕ Add New Product'}
+            {isEditing ? 'Edit Product' : 'Add New Product'}
           </h1>
           <button 
             onClick={handleCancel}
             className="btn btn-outline"
           >
-            ← Back to Dashboard
+            Back to Dashboard
           </button>
         </div>
 
@@ -183,7 +275,7 @@ const ProductEditor = () => {
         <div className="profile-section">
           <form onSubmit={handleSubmit}>
             {/* Basic Information */}
-            <h3 style={{ marginBottom: '1.5rem', color: '#333' }}>📝 Basic Information</h3>
+            <h3 style={{ marginBottom: '1.5rem', color: '#333' }}>Basic Information</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group">
@@ -228,7 +320,7 @@ const ProductEditor = () => {
             </div>
 
             {/* Pricing and Inventory */}
-            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>💰 Pricing & Inventory</h3>
+            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>Pricing & Inventory</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
@@ -264,51 +356,157 @@ const ProductEditor = () => {
                     onChange={(e) => setProductForm({...productForm, featured: e.target.checked})}
                     style={{ transform: 'scale(1.2)' }}
                   />
-                  ⭐ Featured Product
+                  Featured Product
                 </label>
                 <small style={{ color: '#666' }}>Featured products appear on the home page</small>
               </div>
             </div>
 
             {/* Images */}
-            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>🖼️ Product Images</h3>
+            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>Product Images</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' }}>
               <div>
+                {/* Main Image Upload */}
                 <div className="form-group">
-                  <label>Main Image URL *</label>
+                  <label>Main Product Image *</label>
+                  <div style={{ 
+                    border: '2px dashed #ddd', 
+                    borderRadius: '8px', 
+                    padding: '1rem', 
+                    textAlign: 'center',
+                    background: '#fafafa',
+                    marginBottom: '1rem'
+                  }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMainImageUpload}
+                      style={{ display: 'none' }}
+                      id="main-image-upload"
+                      disabled={uploadingImage}
+                    />
+                    <label 
+                      htmlFor="main-image-upload" 
+                      className="btn btn-secondary"
+                      style={{ 
+                        cursor: uploadingImage ? 'not-allowed' : 'pointer',
+                        opacity: uploadingImage ? 0.6 : 1 
+                      }}
+                    >
+                      {uploadingImage ? 'Uploading...' : 'Upload Main Image'}
+                    </label>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                      Or drag and drop an image here (Max 5MB)
+                    </p>
+                  </div>
+                  
+                  <label>Or enter image URL:</label>
                   <input
                     type="url"
                     value={productForm.image}
                     onChange={handleImageUrlChange}
                     className="form-control"
                     placeholder="https://example.com/image.jpg"
-                    required
                   />
-                  <small style={{ color: '#666' }}>
-                    This will be the primary image displayed for your product
-                  </small>
                 </div>
 
+                {/* Additional Images Upload */}
                 <div className="form-group">
                   <label>Additional Images (Optional)</label>
-                  <textarea
-                    value={productForm.images}
-                    onChange={(e) => setProductForm({...productForm, images: e.target.value})}
-                    className="form-control"
-                    rows="3"
-                    placeholder="https://img1.jpg, https://img2.jpg, https://img3.jpg"
-                  />
-                  <small style={{ color: '#666' }}>
-                    Separate multiple image URLs with commas
-                  </small>
+                  <div style={{ 
+                    border: '2px dashed #ddd', 
+                    borderRadius: '8px', 
+                    padding: '1rem', 
+                    textAlign: 'center',
+                    background: '#fafafa',
+                    marginBottom: '1rem'
+                  }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleMultipleImagesUpload}
+                      style={{ display: 'none' }}
+                      id="additional-images-upload"
+                      disabled={uploadingImages}
+                    />
+                    <label 
+                      htmlFor="additional-images-upload" 
+                      className="btn btn-secondary"
+                      style={{ 
+                        cursor: uploadingImages ? 'not-allowed' : 'pointer',
+                        opacity: uploadingImages ? 0.6 : 1 
+                      }}
+                    >
+                      {uploadingImages ? 'Uploading...' : 'Upload Additional Images'}
+                    </label>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem', color: '#666' }}>
+                      Select multiple images (Max 5 files, 5MB each)
+                    </p>
+                  </div>
+
+                  {/* Display uploaded additional images */}
+                  {productForm.images && (
+                    <div>
+                      <label>Uploaded Additional Images:</label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        {productForm.images.split(',').map((img, index) => {
+                          const imageUrl = img.trim();
+                          if (!imageUrl) return null;
+                          return (
+                            <div key={index} style={{ 
+                              position: 'relative', 
+                              display: 'inline-block',
+                              border: '1px solid #ddd',
+                              borderRadius: '4px',
+                              padding: '4px'
+                            }}>
+                              <img 
+                                src={imageUrl} 
+                                alt={`Additional ${index + 1}`}
+                                style={{ 
+                                  width: '60px', 
+                                  height: '60px', 
+                                  objectFit: 'cover',
+                                  borderRadius: '4px'
+                                }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeImageFromList(index)}
+                                style={{
+                                  position: 'absolute',
+                                  top: '-8px',
+                                  right: '-8px',
+                                  background: '#dc3545',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: '20px',
+                                  height: '20px',
+                                  fontSize: '12px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Image Preview */}
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                  Image Preview
+                  Main Image Preview
                 </label>
                 <div style={{
                   width: '100%',
@@ -337,7 +535,7 @@ const ProductEditor = () => {
                     />
                   ) : (
                     <div style={{ textAlign: 'center', color: '#666' }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🖼️</div>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
                       <div>Image preview will appear here</div>
                     </div>
                   )}
@@ -346,7 +544,7 @@ const ProductEditor = () => {
             </div>
 
             {/* Product Variants */}
-            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>🎨 Product Variants (Optional)</h3>
+            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>Product Variants (Optional)</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
@@ -377,94 +575,8 @@ const ProductEditor = () => {
               </div>
             </div>
 
-            {/* Product Preview */}
-            <h3 style={{ margin: '2rem 0 1.5rem 0', color: '#333' }}>👀 Product Preview</h3>
-            
-            <div style={{
-              border: '2px solid #e9ecef',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              background: '#fafafa',
-              marginBottom: '2rem'
-            }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '1.5rem' }}>
-                <div>
-                  {imagePreview ? (
-                    <img 
-                      src={imagePreview} 
-                      alt="Product preview"
-                      style={{
-                        width: '100%',
-                        height: '150px',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
-                        border: '2px solid #ddd'
-                      }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%',
-                      height: '150px',
-                      background: '#ddd',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#666'
-                    }}>
-                      No Image
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 0.5rem 0', color: '#333' }}>
-                    {productForm.name || 'Product Name'}
-                    {productForm.featured && <span style={{ color: '#ffc107', marginLeft: '0.5rem' }}>⭐</span>}
-                  </h4>
-                  <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                    Category: {productForm.category}
-                  </p>
-                  <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                    {productForm.description || 'Product description will appear here...'}
-                  </p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ 
-                      fontSize: '1.5rem', 
-                      fontWeight: 'bold', 
-                      color: '#e91e63' 
-                    }}>
-                      ${productForm.price || '0.00'}
-                    </span>
-                    <span style={{ 
-                      color: productForm.quantity && parseInt(productForm.quantity) > 0 ? '#28a745' : '#dc3545',
-                      fontSize: '0.9rem'
-                    }}>
-                      {productForm.quantity && parseInt(productForm.quantity) > 0 
-                        ? `${productForm.quantity} in stock` 
-                        : 'Out of stock'
-                      }
-                    </span>
-                  </div>
-                  {(productForm.sizes || productForm.colors) && (
-                    <div style={{ marginTop: '1rem' }}>
-                      {productForm.sizes && (
-                        <div style={{ marginBottom: '0.5rem' }}>
-                          <strong>Sizes:</strong> {productForm.sizes}
-                        </div>
-                      )}
-                      {productForm.colors && (
-                        <div>
-                          <strong>Colors:</strong> {productForm.colors}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
               <button 
                 type="button"
                 onClick={handleCancel}
@@ -476,7 +588,7 @@ const ProductEditor = () => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || uploadingImage || uploadingImages}
                 style={{ padding: '1rem 2rem' }}
               >
                 {loading ? (
@@ -494,42 +606,11 @@ const ProductEditor = () => {
                     {isEditing ? 'Updating...' : 'Creating...'}
                   </>
                 ) : (
-                  isEditing ? '💾 Update Product' : '✨ Create Product'
+                  isEditing ? 'Update Product' : 'Create Product'
                 )}
               </button>
             </div>
           </form>
-        </div>
-
-        {/* Tips and Guidelines */}
-        <div className="profile-section" style={{ marginTop: '2rem' }}>
-          <h3 style={{ color: '#333' }}>💡 Tips for Better Products</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-            <div style={{ padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-              <h4 style={{ color: '#e91e63', fontSize: '1rem', marginBottom: '0.5rem' }}>📸 Images</h4>
-              <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                <li>Use high-quality images (at least 800x800px)</li>
-                <li>Show product from multiple angles</li>
-                <li>Use consistent lighting and background</li>
-              </ul>
-            </div>
-            <div style={{ padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-              <h4 style={{ color: '#e91e63', fontSize: '1rem', marginBottom: '0.5rem' }}>📝 Description</h4>
-              <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                <li>Highlight key features and benefits</li>
-                <li>Include material and care instructions</li>
-                <li>Mention dimensions or sizing details</li>
-              </ul>
-            </div>
-            <div style={{ padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-              <h4 style={{ color: '#e91e63', fontSize: '1rem', marginBottom: '0.5rem' }}>💰 Pricing</h4>
-              <ul style={{ margin: 0, paddingLeft: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                <li>Research competitor pricing</li>
-                <li>Consider your cost and desired margin</li>
-                <li>Use psychological pricing (e.g., $99.99)</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </div>
     </div>
