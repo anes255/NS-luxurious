@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, useCart } from '../App';
 
@@ -6,6 +6,34 @@ const Header = () => {
   const { user, logout } = useAuth();
   const { getCartItemCount } = useCart();
   const navigate = useNavigate();
+  
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const controlHeader = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show header when scrolling up or at the top
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setIsVisible(true);
+      } 
+      // Hide header when scrolling down (but not immediately)
+      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', controlHeader);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', controlHeader);
+    };
+  }, [lastScrollY]);
 
   const handleLogout = () => {
     logout();
@@ -21,7 +49,13 @@ const Header = () => {
   };
 
   return (
-    <header className="header">
+    <header 
+      className="header" 
+      style={{
+        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.3s ease-in-out'
+      }}
+    >
       <div className="container">
         <div className="header-content">
           <Link to="/" className="logo">
@@ -61,7 +95,7 @@ const Header = () => {
                     opacity: 0.7
                   }}
                 >
-                  🔐 Admin
+                  Admin
                 </Link>
               </li>
               
