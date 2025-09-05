@@ -645,15 +645,7 @@ body {
     font-size: 1.4rem; /* Smaller logo on mobile */
   }
   
-  /* Hide admin link on very small screens */
-  @media (max-width: 768px) {
-  /* Make admin link smaller and less prominent on mobile */
-  .nav-links li:nth-last-child(2) a {
-    font-size: 0.7rem;
-    opacity: 0.5;
-    padding: 4px 8px;
-  }
-}
+
 
 @media (max-width: 480px) {
   body {
@@ -693,4 +685,5 @@ body {
 }
 
 }
+
 
