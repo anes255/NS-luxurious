@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -24,9 +24,7 @@ export const useAuth = () => useContext(AuthContext);
 export const useCart = () => useContext(CartContext);
 export const useTheme = () => useContext(ThemeContext);
 
-// Set up axios defaults - UPDATE THIS FOR PRODUCTION
-// For development: http://localhost:5000/api
-// For production: https://your-backend-url.onrender.com/api
+// Set up axios defaults
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Theme Provider Component
@@ -100,6 +98,20 @@ const ThemeProvider = ({ children }) => {
     <ThemeContext.Provider value={{ theme, loadTheme, themeLoading, applyThemeToCSS }}>
       {children}
     </ThemeContext.Provider>
+  );
+};
+
+// Admin Layout Component
+const AdminLayout = ({ children, setAdmin }) => {
+  return (
+    <div className="App">
+      <div style={{ 
+        background: 'var(--background-gradient)',
+        minHeight: '100vh'
+      }}>
+        {children}
+      </div>
+    </div>
   );
 };
 
@@ -220,25 +232,6 @@ function App() {
     );
   }
 
-  // Admin routes
-  if (admin) {
-    return (
-      <ThemeProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/theme" element={<ThemeControl />} />
-              <Route path="/admin/product/new" element={<ProductEditor />} />
-              <Route path="/admin/product/edit/:id" element={<ProductEditor />} />
-              <Route path="*" element={<Navigate to="/admin/dashboard" />} />
-            </Routes>
-          </div>
-        </Router>
-      </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider>
       <AuthContext.Provider value={{ user, login, logout }}>
@@ -253,33 +246,54 @@ function App() {
         }}>
           <Router>
             <div className="App">
-              <Header />
-              <main>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route 
-                    path="/login" 
-                    element={!user ? <Login /> : <Navigate to="/" />} 
-                  />
-                  <Route 
-                    path="/register" 
-                    element={!user ? <Register /> : <Navigate to="/" />} 
-                  />
-                  <Route 
-                    path="/profile" 
-                    element={user ? <Profile /> : <Navigate to="/login" />} 
-                  />
-                  <Route 
-                    path="/checkout" 
-                    element={user ? <Checkout /> : <Navigate to="/login" />} 
-                  />
-                  <Route 
-                    path="/admin" 
-                    element={<AdminLogin setAdmin={setAdmin} />} 
-                  />
-                </Routes>
-              </main>
-              <Footer />
+              {/* Check if admin is logged in */}
+              {admin ? (
+                // Admin Routes - No Header/Footer
+                <AdminLayout setAdmin={setAdmin}>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/theme" element={<ThemeControl />} />
+                    <Route path="/admin/product/new" element={<ProductEditor />} />
+                    <Route path="/admin/product/edit/:id" element={<ProductEditor />} />
+                    <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+                  </Routes>
+                </AdminLayout>
+              ) : (
+                // Regular User Routes - With Header/Footer
+                <>
+                  <Header />
+                  <main>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route 
+                        path="/login" 
+                        element={!user ? <Login /> : <Navigate to="/" replace />} 
+                      />
+                      <Route 
+                        path="/register" 
+                        element={!user ? <Register /> : <Navigate to="/" replace />} 
+                      />
+                      <Route 
+                        path="/profile" 
+                        element={user ? <Profile /> : <Navigate to="/login" replace />} 
+                      />
+                      <Route 
+                        path="/checkout" 
+                        element={user ? <Checkout /> : <Navigate to="/login" replace />} 
+                      />
+                      <Route 
+                        path="/admin" 
+                        element={<AdminLogin setAdmin={setAdmin} />} 
+                      />
+                      {/* Catch all route */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </main>
+                  <Footer />
+                </>
+              )}
             </div>
           </Router>
         </CartContext.Provider>
