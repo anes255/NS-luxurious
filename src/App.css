@@ -646,8 +646,12 @@ body {
   }
   
   /* Hide admin link on very small screens */
-  .nav-links li:nth-last-child(2) {
-    display: none;
+  @media (max-width: 768px) {
+  /* Make admin link smaller and less prominent on mobile */
+  .nav-links li:nth-last-child(2) a {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    padding: 4px 8px;
   }
 }
 
@@ -689,3 +693,4 @@ body {
 }
 
 }
+
