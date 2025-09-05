@@ -645,7 +645,11 @@ body {
     font-size: 1.4rem; /* Smaller logo on mobile */
   }
   
-
+  /* Hide admin link on very small screens */
+  .nav-links li:nth-last-child(2) {
+    display: none;
+  }
+}
 
 @media (max-width: 480px) {
   body {
@@ -683,7 +687,7 @@ body {
     font-size: 0.7rem;
   }
 }
-
 }
+
 
 
