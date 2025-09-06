@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart, useAuth } from '../App';
+import { formatPrice } from '../utils/currency';
 
 const Checkout = () => {
   const { cart, getCartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -292,7 +293,7 @@ const Checkout = () => {
                       fontWeight: '500',
                       fontSize: '0.9rem'
                     }}>
-                      ${item.price.toFixed(2)} each
+                      {formatPrice(item.price)} each
                     </div>
                     <div className="quantity-controls" style={{
                       display: 'flex',
@@ -345,7 +346,7 @@ const Checkout = () => {
                     color: '#333',
                     fontSize: '0.9rem'
                   }}>
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatPrice(item.price * item.quantity)}
                   </div>
                 </div>
               ))}
@@ -354,7 +355,7 @@ const Checkout = () => {
             {/* Summary */}
             <div className="summary-item">
               <span>Subtotal:</span>
-              <span>${getCartTotal().toFixed(2)}</span>
+              <span>{formatPrice(getCartTotal())}</span>
             </div>
             <div className="summary-item">
               <span>Shipping:</span>
@@ -362,7 +363,7 @@ const Checkout = () => {
             </div>
             <div className="summary-total">
               <span>Total:</span>
-              <span>${getCartTotal().toFixed(2)}</span>
+              <span>{formatPrice(getCartTotal())}</span>
             </div>
           </div>
         </div>
