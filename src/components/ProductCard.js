@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCart, useAuth } from '../App';
+import { formatPrice } from '../utils/currency';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
@@ -49,7 +50,7 @@ const ProductCard = ({ product }) => {
             : product.description
           }
         </p>
-        <div className="product-price">${product.price.toFixed(2)}</div>
+        <div className="product-price">{formatPrice(product.price)}</div>
         <div style={{ marginBottom: '1rem' }}>
           <span style={{ 
             color: product.inStock ? '#28a745' : '#dc3545',
