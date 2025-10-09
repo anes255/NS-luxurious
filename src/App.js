@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
+import ProductDetail from './pages/ProductDetail';
 import AdminLogin from './pages/adminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import ThemeControl from './pages/themeControl';
@@ -267,6 +268,7 @@ function App() {
                   <main>
                     <Routes>
                       <Route path="/" element={<Home />} />
+                      <Route path="/product/:id" element={<ProductDetail />} />
                       <Route 
                         path="/login" 
                         element={!user ? <Login /> : <Navigate to="/" replace />} 
